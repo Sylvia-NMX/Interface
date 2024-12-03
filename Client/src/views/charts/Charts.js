@@ -1,11 +1,10 @@
-import { Line } from 'react-chartjs-2'
+import { Line } from 'react-chartjs-2'// Import the Line component
 import React, { useEffect, useState } from 'react'
-import axios from 'axios'
-import { Doughnut } from 'react-chartjs-2'
+import axios from 'axios'// Import the axios library
+import { Doughnut } from 'react-chartjs-2'// Import the Doughnut component
 import { CCard, CCardBody, CCol, CCardHeader, CRow } from '@coreui/react'
 import { useTranslation } from 'react-i18next';  // Import the useTranslation hook
-
-import generateHmacSignature from '../../assets/generateHmacSignature'
+import generateHmacSignature from '../../assets/generateHmacSignature' // Import the generateHmacSignature function
 
 import {
   Chart as ChartJS,
@@ -18,7 +17,7 @@ import {
   Legend,
   Filler,
   ArcElement,
-} from 'chart.js'
+} from 'chart.js'// Import the ChartJS library
 
 ChartJS.register(
   CategoryScale,
@@ -32,10 +31,12 @@ ChartJS.register(
   Filler,
 )
 
-//IDIOMA
+//LANGUAGE
 const lenguage = 'en-US'
+//API url of the EC2 instance
 const API_BASE_URL = 'http://34.238.138.8:5000'
 
+//Color of the weather
 const colorMap = {
   Rain: '#5C6BC0',
   Clear: '#FFEB3B',
@@ -46,6 +47,7 @@ const colorMap = {
   Atmosphera: '#FFA726',
 }
 
+//Weather words
 const words_weather = [
   'Mist',
   'Smoke',
@@ -59,6 +61,7 @@ const words_weather = [
   'Tornado',
 ]
 
+//Open hours
 const openMap = {
   0: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   1: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -69,6 +72,8 @@ const openMap = {
   6: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0],
 }
 
+
+//Function to get the days of the week
 const getDaysFromTodayLocalized = (locale) => {
   const today = new Date()
   const dayIndex = today.getDay()
@@ -81,6 +86,7 @@ const getDaysFromTodayLocalized = (locale) => {
   return orderedDays
 }
 
+//Function to get the dates
 const getDates = (locale, value) => {
   const today = new Date()
   const dateday = new Date(today)
@@ -89,15 +95,18 @@ const getDates = (locale, value) => {
   return date
 }
 
+//Function to get the color by category
 const getColorByCategory = (category) => {
-  return colorMap[category] || 'rgb(0, 0, 0)' // Color negro si la categoría no está en colorMap
+  return colorMap[category] || 'rgb(0, 0, 0)' // Black color if no category is found
 }
 
+//Charts component
 const Charts = () => {
   const [DataPrediction, setPredictionData] = useState([])
   const [historical_data, setHistoricalData] = useState([])
   const [sales, setSales] = useState([])
 
+  //Fetch the data from the API for hourly traffic predictions
   const fetchPredictionData = async () => {
     const method = 'GET'
     const endpoint = '/traffic_predictions_hourly'
@@ -118,7 +127,7 @@ const Charts = () => {
       console.error('Error fetching clients:', error)
     }
   }
-
+  //Fetch the data from the API for historical traffic data
   const fetchHistorical = async () => {
     const method = 'GET'
     const endpoint = '/historical_traffic_data'
@@ -140,6 +149,7 @@ const Charts = () => {
     }
   }
 
+  //Fetch the data from the API for sales data
   const fetchClients = async () => {
     const method = 'GET'
     const endpoint = '/clients'
@@ -160,7 +170,7 @@ const Charts = () => {
       console.error('Error fetching clients:', error)
     }
   }
-
+//UseEffect to fetch the data from the API this is for the predictions, historical data and sales data
   useEffect(() => {
     fetchPredictionData()
     fetchHistorical()
@@ -168,25 +178,28 @@ const Charts = () => {
   }, [])
 
   console.log(DataPrediction)
-  //Predicciones Hoy antes mañana
+  //Prediction data for the charts today and tomorrow
   const label_hours = Array.from({ length: 24 }, (_, i) => i)
 
+  //PREDICTION
   const data = DataPrediction.slice(-48)
   const data_today = data.slice(0, 24).map((item) => item.predicted_traffic)
   const weather_today = data.slice(0, 24).map((item) => item.weather_condition)
   const color_points_today = data
     .slice(0, 24)
-    .map((item) => getColorByCategory(item.weather_condition))
+    .map((item) => getColorByCategory(item.weather_condition))//Color of the points
 
   const upWeather_today = weather_today.map((word) =>
     words_weather.includes(word) ? 'Atmosphera' : word,
-  )
+  )//Weather words
 
+  //Count the weather types
   const weatherCountsToday = upWeather_today.reduce((acc, weather) => {
     acc[weather] = (acc[weather] || 0) + 1
     return acc
   }, {})
 
+  //Prediction for tomorrow
   const dataT = DataPrediction.slice(-24)
   const data_tomorrow = dataT.slice(0, 24).map((item) => item.predicted_traffic)
   const weather_tomorrow = dataT.slice(0, 24).map((item) => item.weather_condition)
@@ -234,6 +247,7 @@ const Charts = () => {
   const opening_last_week = data_sales.slice(-7).map((item) => item.opening_time)
   const closing_last_week = data_sales.slice(-7).map((item) => item.closing_time)
 
+  //Convert time to milliseconds
   const timeToMilliseconds = (time) => {
     const [hours, minutes, seconds] = time.split(':').map(Number)
     return hours * 60 * 60 * 1000 + minutes * 60 * 1000 + seconds * 1000
@@ -242,6 +256,7 @@ const Charts = () => {
   const opening = opening_last_week.map(timeToMilliseconds)
   const closing = closing_last_week.map(timeToMilliseconds)
 
+  //Avarage sales last month
   const sales_avarage_4weeks = []
   for (let i = 0; i < 7; i = i + 1) {
     const grupo = []
@@ -266,6 +281,7 @@ const Charts = () => {
   const sales_visits = []
   const sales_time = []
 
+  //Sales per employees, sales per visits and sales per hour worked
   for (let i = 0; i < 7; i = i + 1) {
     const val1 = sales_last_week[i] / employees_last_week[i]
     const val2 = sales_last_week[i] / last_week[i]
@@ -275,6 +291,7 @@ const Charts = () => {
     sales_time.push(val3)
   }
 
+  //Charts-----------------------------------------
   const prediction_today = {
     labels: label_hours,
     datasets: [
@@ -513,6 +530,7 @@ const Charts = () => {
   const title9 = 'Average sales per Visit'
   const title10 = 'Average sales per Hour Worked'
 
+  //Return the charts
   return (
     <CRow>
       <CCol xs={12}></CCol>
