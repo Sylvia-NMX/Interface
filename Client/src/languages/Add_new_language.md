@@ -10,6 +10,7 @@
      }
      ```
    - Only translate the text after the colon (`:`). For example, change `"Client Data UI"` to the corresponding translation, but **do not change** the key `"clientDataUI"`.
+   - **Note**: please consider that the language logic is still not implemented. The examples are from the other interface, but they can be useful for future implementations. 
 3. Save your new language file in the same folder with the appropriate name (e.g., `spanish.json`, `french.json`).
 
 ## 2. Setting Up the Language in `i18n.js`
